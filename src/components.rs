@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage, World};
+use specs::{Builder, Component, VecStorage, World, WorldExt};
 
 #[derive(Debug, Component, Clone, Copy)]
 #[storage(VecStorage)]
