@@ -1,9 +1,15 @@
 use ggez::{conf, Context, ContextBuilder, GameResult};
 use ggez::graphics::{self, Color};
 use ggez::event::{self, EventHandler};
+use specs::{World, WorldExt};
 use std::path;
 
+mod components;
+
 fn main() {
+    let mut world = World::new();
+    components::register_components(&mut world);
+
     // Make a Context:
     let (mut context, event_loop) = ContextBuilder::new("rust_sokoban", "Nate Cornell")
         .window_setup(conf::WindowSetup::default().title("Rust Sokoban!"))
@@ -15,23 +21,21 @@ fn main() {
     // Create an instance of an event handler.
     // In most cases, it should be provided with the Context object to use when
     // Setting up the game.
-    let game = Game::new(&mut context);
+    let game = Game::new(&mut context, world);
 
     // Run the game
     event::run(context, event_loop, game);
 }
 
 struct Game {
-    // TODO: State goes here
+    world: World,
 }
 
 impl Game {
-    pub fn new(_context: &mut Context) -> Game {
+    pub fn new(_context: &mut Context, world: World) -> Game {
         // Load/create resources like images, etc. here
 
-        Game {
-            // TODO...
-        }
+        Game { world }
     }
 }
 
