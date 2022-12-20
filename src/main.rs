@@ -1,23 +1,11 @@
 use ggez::{conf, Context, ContextBuilder, event::{self, EventHandler}, GameResult, graphics::{Canvas, Color, DrawParam, Image}};
 use mint::Point2;
-use specs::{join::Join, ReadStorage, System, World, WorldExt};
+use specs::{join::Join, ReadStorage, RunNow, System, World, WorldExt};
 use std::path;
 
 const TILE_WIDTH: f32 = 32.0;
 
 mod components;
-
-struct Game {
-    world: World,
-}
-
-impl Game {
-    pub fn new(_context: &mut Context, world: World) -> Game {
-        // Load/create resources like images, etc. here
-
-        Game { world }
-    }
-}
 
 pub struct RenderingSystem<'a> {
     context: &'a mut Context,
@@ -45,10 +33,10 @@ impl<'a> System<'a> for RenderingSystem<'a> {
         // and draw it at the specified position.
         for (position, renderable) in rendering_data.iter() {
             // Load the image
-            let imageResult = Image::from_path(self.context, renderable.path.clone());
+            let image_result = Image::from_path(self.context, renderable.path.clone());
 
-            if imageResult.is_ok() {
-                let image = imageResult.unwrap();
+            if image_result.is_ok() {
+                let image = image_result.unwrap();
                 let x = position.x as f32 * TILE_WIDTH;
                 let y = position.y as f32 * TILE_WIDTH;
 
@@ -64,6 +52,18 @@ impl<'a> System<'a> for RenderingSystem<'a> {
     }
 }
 
+struct Game {
+    world: World,
+}
+
+impl Game {
+    pub fn new(_context: &mut Context, world: World) -> Game {
+        // Load/create resources like images, etc. here
+
+        Game { world }
+    }
+}
+
 impl EventHandler for Game {
     fn update(&mut self, _context: &mut Context) -> GameResult {
         // TODO: Update code goes here
@@ -73,7 +73,7 @@ impl EventHandler for Game {
     fn draw(&mut self, context: &mut Context) -> GameResult {
         // TODO: Draw code goes here
         let mut rs = RenderingSystem {context};
-        rs.run(&self.world);
+        rs.run_now(&self.world);
 
         return Ok(());
     }
