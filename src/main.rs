@@ -79,9 +79,38 @@ impl EventHandler for Game {
     }
 }
 
+// Test entities to render:
+pub fn initialize_level(world: &mut World) {
+    components::create_player(
+        world,
+        components::Position {
+            x: 0,
+            y: 0,
+            z: 0,
+        }
+    );
+    components::create_wall(
+        world,
+        components::Position {
+            x: 1,
+            y: 0,
+            z: 0,
+        }
+    );
+    components::create_box(
+        world,
+        components::Position {
+            x: 2,
+            y: 0,
+            z: 0,
+        }
+    );
+}
+
 fn main() {
     let mut world = World::new();
     components::register_components(&mut world);
+    initialize_level(&mut world);
 
     // Make a Context:
     let (mut context, event_loop) = ContextBuilder::new("rust_sokoban", "Nate Cornell")
