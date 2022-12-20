@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 ggez = "0.8.1"
+mint = "0.5.9"
 specs = { version = "0.18.0", features = ["specs-derive"] }
