@@ -1,7 +1,7 @@
 use ggez::{
     conf, Context, ContextBuilder,
     event::{self, EventHandler},
-    input::{keyboard::{KeyInput}},
+    input::{keyboard::{KeyCode, KeyInput}},
     GameResult, graphics::{Canvas, Color, DrawParam, Image},
     winit::{dpi::{LogicalSize}}
 };
@@ -16,7 +16,9 @@ const TILE_WIDTH: f32 = 32.0;
 
 mod components;
 
+////
 // Resources:
+////
 #[derive(Default)]
 pub struct InputQueue {
     pub keys_pressed: Vec<KeyInput>,
@@ -27,11 +29,16 @@ pub fn register_resources(world: &mut World) {
     world.insert(InputQueue::default());
 }
 
+////
+// Systems
+////
+
+// Rendering System
 pub struct RenderingSystem<'a> {
     context: &'a mut Context,
 }
 
-// System Implementation
+// Rendering System Implementation
 impl<'a> System<'a> for RenderingSystem<'a> {
     // Data
     type SystemData = (ReadStorage<'a, components::Position>, ReadStorage<'a, components::Renderable>);
@@ -74,6 +81,37 @@ impl<'a> System<'a> for RenderingSystem<'a> {
     }
 }
 
+// Input system
+pub struct InputSystem {}
+
+impl<'a> System<'a> for InputSystem {
+    type SystemData = (
+        Write<'a, InputQueue>,
+        WriteStorage<'a, components::Position>,
+        ReadStorage<'a, components::Player>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (mut input_queue, mut positions, players) = data;
+
+        for (position, _player) in (&mut positions, &players).join() {
+            // Get the first keypress
+            if let Some(key) = input_queue.keys_pressed.pop() {
+                match key.keycode.unwrap() {
+                    KeyCode::Up => position.y -= 1,
+                    KeyCode::Down => position.y += 1,
+                    KeyCode::Left => position.x -= 1,
+                    KeyCode::Right => position.x += 1,
+                    _ => (),
+                }
+            }
+        }
+    }
+}
+
+////
+// Game Struct
+////
 struct Game {
     world: World,
 }
@@ -86,25 +124,29 @@ impl Game {
     }
 }
 
+////
+// Event Handling
+////
 impl EventHandler for Game {
     fn key_down_event(
         &mut self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         input: KeyInput,
         _repeat: bool
     ) -> GameResult {
-        println!("Key pressed: {:?}", input.keycode.unwrap());
-
         let mut input_queue = self.world.write_resource::<InputQueue>();
         input_queue.keys_pressed.push(input);
-        println!("queue: {:?}", input_queue.keys_pressed);
 
         return Ok(());
     }
 
     fn update(&mut self, _context: &mut Context) -> GameResult {
-        // TODO: Update code goes here
-        Ok(())
+        // Run input system:
+        {
+            let mut is = InputSystem {};
+            is.run_now(&self.world);
+        }
+        return Ok(())
     }
 
     fn draw(&mut self, context: &mut Context) -> GameResult {
