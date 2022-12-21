@@ -16,6 +16,17 @@ const TILE_WIDTH: f32 = 32.0;
 
 mod components;
 
+// Resources:
+#[derive(Default)]
+pub struct InputQueue {
+    pub keys_pressed: Vec<KeyInput>,
+}
+
+// Register resources to world:
+pub fn register_resources(world: &mut World) {
+    world.insert(InputQueue::default());
+}
+
 pub struct RenderingSystem<'a> {
     context: &'a mut Context,
 }
@@ -82,7 +93,11 @@ impl EventHandler for Game {
         input: KeyInput,
         _repeat: bool
     ) -> GameResult {
-        println!("Key pressed: {:?}", input.keycode);
+        println!("Key pressed: {:?}", input.keycode.unwrap());
+
+        let mut input_queue = self.world.write_resource::<InputQueue>();
+        input_queue.keys_pressed.push(input);
+        println!("queue: {:?}", input_queue.keys_pressed);
 
         return Ok(());
     }
@@ -162,6 +177,7 @@ pub fn initialize_level(world: &mut World) {
 fn main() {
     let mut world = World::new();
     components::register_components(&mut world);
+    register_resources(&mut world);
     initialize_level(&mut world);
 
     // Make a Context:
