@@ -1,9 +1,15 @@
-use ggez::{conf, Context, ContextBuilder, event::{self, EventHandler},
+use ggez::{
+    conf, Context, ContextBuilder,
+    event::{self, EventHandler},
+    input::{keyboard::{KeyInput}},
     GameResult, graphics::{Canvas, Color, DrawParam, Image},
     winit::{dpi::{LogicalSize}}
 };
 use mint::Point2;
-use specs::{join::Join, ReadStorage, RunNow, System, World, WorldExt};
+use specs::{
+    join::Join, Builder, Component, ReadStorage, RunNow, System, VecStorage,
+    World, WorldExt, Write, WriteStorage
+};
 use std::path;
 
 const TILE_WIDTH: f32 = 32.0;
@@ -70,6 +76,17 @@ impl Game {
 }
 
 impl EventHandler for Game {
+    fn key_down_event(
+        &mut self,
+        ctx: &mut Context,
+        input: KeyInput,
+        _repeat: bool
+    ) -> GameResult {
+        println!("Key pressed: {:?}", input.keycode);
+
+        return Ok(());
+    }
+
     fn update(&mut self, _context: &mut Context) -> GameResult {
         // TODO: Update code goes here
         Ok(())
