@@ -1,18 +1,20 @@
-use ggez::{
-    conf, Context, ContextBuilder,
-    event::{self, EventHandler},
-    input::{keyboard::{KeyCode, KeyInput}},
-    GameResult, graphics::{Canvas, Color, DrawParam, Image},
-    winit::{dpi::{LogicalSize}}
-};
+use ggez::{conf, Context, ContextBuilder, GameResult};
+use ggez::event::{self, EventHandler};
+use ggez::input::keyboard::{KeyCode, KeyInput};
+use ggez::graphics::{Canvas, Color, DrawParam, Image};
+use ggez::winit::dpi::{LogicalSize};
 use mint::Point2;
 use specs::{
-    join::Join, Builder, Component, ReadStorage, RunNow, System, VecStorage,
-    World, WorldExt, Write, WriteStorage
+    Entities, ReadStorage, RunNow, System, World, WorldExt, Write, WriteStorage
 };
+use specs::world::Index;
+use specs::join::Join;
 use std::path;
+use std::collections::HashMap;
 
 const TILE_WIDTH: f32 = 32.0;
+const MAP_HEIGHT: u8 = 8;
+const MAP_WIDTH: u8 = 9;
 
 mod components;
 
@@ -87,16 +89,80 @@ pub struct InputSystem {}
 impl<'a> System<'a> for InputSystem {
     type SystemData = (
         Write<'a, InputQueue>,
+        Entities<'a>,
         WriteStorage<'a, components::Position>,
         ReadStorage<'a, components::Player>,
+        ReadStorage<'a, components::Moveable>,
+        ReadStorage<'a, components::Immoveable>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut input_queue, mut positions, players) = data;
+        let (mut input_queue, entities, mut positions, players, moveables, immoveables) = data;
 
-        for (position, _player) in (&mut positions, &players).join() {
+        let mut to_move = Vec::new();
+
+        for (position, _player) in (&positions, &players).join() {
             // Get the first keypress
             if let Some(key) = input_queue.keys_pressed.pop() {
+                // Get the moveables and immoveables:
+                let mov: HashMap<(u8, u8), Index> = (&entities, &moveables, &positions)
+                    .join()
+                    .map(|t| ((t.2.x, t.2.y), t.0.id()))
+                    .collect::<HashMap<_, _>>();
+
+                let immov: HashMap<(u8, u8), Index> = (&entities, &immoveables, &positions)
+                    .join()
+                    .map(|t| ((t.2.x, t.2.y), t.0.id()))
+                    .collect::<HashMap<_, _>>();
+
+                // Now we'll check everything from the current position through
+                // this axis to see what can and must move
+                let (start, end, is_x) = match key.keycode.unwrap() {
+                    KeyCode::Up => (position.y, 0, false),
+                    KeyCode::Down => (position.y, MAP_HEIGHT, false),
+                    KeyCode::Left => (position.x, 0, true),
+                    KeyCode::Right => (position.x, MAP_WIDTH, true),
+                    _ => continue,
+                };
+
+                let range = if start < end {
+                    (start..=end).collect::<Vec<_>>()
+                } else {
+                    (end..=start).rev().collect::<Vec<_>>()
+                };
+
+                for x_or_y in range {
+                    let pos = if is_x {
+                        (x_or_y, position.y)
+                    } else {
+                        (position.x, x_or_y)
+                    };
+
+                    // Find a moveable
+                    // If it exists, try to move it and continue
+                    // If it doesn't exist, we continue and look for an
+                    // immoveable instead
+                    match mov.get(&pos) {
+                        Some(id) => to_move.push((key, id.clone())),
+                        None => {
+                            // Find an immoveable. 
+                            // If it exists, we'll stop and move nothing
+                            // If not, we stop because we found a gap (floor)
+                            match immov.get(&pos) {
+                                Some(_id) => to_move.clear(),
+                                None => break,
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+        // Now move everything that can and must be moved
+        for (key, id) in to_move {
+            let position = positions.get_mut(entities.entity(id));
+            if let Some(position) = position {
                 match key.keycode.unwrap() {
                     KeyCode::Up => position.y -= 1,
                     KeyCode::Down => position.y += 1,

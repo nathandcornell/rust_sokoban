@@ -1,4 +1,4 @@
-use specs::{Builder, Component, VecStorage, World, WorldExt};
+use specs::{Builder, Component, NullStorage, VecStorage, World, WorldExt};
 
 #[derive(Debug, Component, Clone, Copy)]
 #[storage(VecStorage)]
@@ -34,34 +34,23 @@ pub struct Box {
 pub struct BoxSpot {
 }
 
+#[derive(Component, Default)]
+#[storage(NullStorage)]
+pub struct Moveable;
+
+#[derive(Component, Default)]
+#[storage(NullStorage)]
+pub struct Immoveable;
+
 pub fn register_components(world: &mut World) {
-    world.register::<Position>();
-    world.register::<Renderable>();
-    world.register::<Player>();
-    world.register::<Wall>();
     world.register::<Box>();
     world.register::<BoxSpot>();
-}
-
-pub fn create_wall(world: &mut World, position: Position) {
-    world
-        .create_entity()
-        .with(Position { z: 10, ..position })
-        .with(Renderable {
-            path: "/images/wall.png".to_string(),
-        })
-        .with(Wall {})
-        .build();
-}
-
-pub fn create_floor(world: &mut World, position: Position) {
-    world
-        .create_entity()
-        .with(Position { z: 5, ..position })
-        .with(Renderable {
-            path: "/images/floor.png".to_string(),
-        })
-        .build();
+    world.register::<Immoveable>();
+    world.register::<Moveable>();
+    world.register::<Player>();
+    world.register::<Position>();
+    world.register::<Renderable>();
+    world.register::<Wall>();
 }
 
 pub fn create_box(world: &mut World, position: Position) {
@@ -71,6 +60,7 @@ pub fn create_box(world: &mut World, position: Position) {
         .with(Renderable {
             path: "/images/box.png".to_string(),
         })
+        .with(Moveable)
         .with(Box {})
         .build();
 }
@@ -86,6 +76,16 @@ pub fn create_box_spot(world: &mut World, position: Position) {
         .build();
 }
 
+pub fn create_floor(world: &mut World, position: Position) {
+    world
+        .create_entity()
+        .with(Position { z: 5, ..position })
+        .with(Renderable {
+            path: "/images/floor.png".to_string(),
+        })
+        .build();
+}
+
 pub fn create_player(world: &mut World, position: Position) {
     world
         .create_entity()
@@ -93,6 +93,19 @@ pub fn create_player(world: &mut World, position: Position) {
         .with(Renderable {
             path: "/images/player.png".to_string(),
         })
+        .with(Moveable)
         .with(Player {})
+        .build();
+}
+
+pub fn create_wall(world: &mut World, position: Position) {
+    world
+        .create_entity()
+        .with(Position { z: 10, ..position })
+        .with(Renderable {
+            path: "/images/wall.png".to_string(),
+        })
+        .with(Immoveable)
+        .with(Wall {})
         .build();
 }
