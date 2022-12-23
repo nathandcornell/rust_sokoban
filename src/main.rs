@@ -47,7 +47,7 @@ impl<'a> System<'a> for RenderingSystem<'a> {
 
     fn run(&mut self, data: Self::SystemData) {
         let scale_factor: f64 = self.context.gfx.window().scale_factor();
-        let mut canvas = Canvas::from_frame(self.context, Color::WHITE);
+        let mut canvas = Canvas::from_frame(self.context, Color::BLACK);
         let (positions, renderables) = data;
 
         // Clearing the screen (gives the bg color):
