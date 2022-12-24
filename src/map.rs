@@ -1,0 +1,51 @@
+////
+// Map
+////
+
+use specs::World;
+
+use crate::components::Position;
+use crate::entities::*;
+
+// Map loader
+// TODO: Refactor to be more efficient (maybe - low priority)
+pub fn load_map(world: &mut World, map_string: String) {
+    // Read each line into a Vector:
+    let rows: Vec<&str> = map_string.trim().split('\n').map(|x| x.trim()).collect();
+
+    for (y, row) in rows.iter().enumerate() {
+        let columns: Vec<&str> = row.split(' ').collect();
+
+        for (x, column) in columns.iter().enumerate() {
+            // Calculate the position on the map where this entity will be drawn
+            let position = Position {
+                x: x as u8,
+                y: y as u8,
+                z: 0, // we'll override this with the entity z value
+            };
+
+            // Create objects according to our key value:
+            match *column {
+                "." => create_floor(world, position),
+                "W" => {
+                    create_floor(world, position);
+                    create_wall(world, position);
+                }
+                "P" => {
+                    create_floor(world, position);
+                    create_player(world, position);
+                }
+                "B" => {
+                    create_floor(world, position);
+                    create_box(world, position);
+                }
+                "S" => {
+                    create_floor(world, position);
+                    create_box_spot(world, position);
+                }
+                "N" => (),
+                c => panic!("unrecognized map item {}", c),
+            }
+        }
+    }
+}
