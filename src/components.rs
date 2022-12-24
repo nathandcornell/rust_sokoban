@@ -29,7 +29,7 @@ pub struct Player {
 pub struct Box {
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct BoxSpot {
 }

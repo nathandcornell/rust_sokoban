@@ -15,7 +15,7 @@ mod systems;
 use crate::components::*;
 use crate::map::*;
 use crate::resources::*;
-use crate::systems::{InputSystem, RenderingSystem};
+use crate::systems::{InputSystem, GameplayStateSystem, RenderingSystem};
 
 ////
 // Game Struct
@@ -52,11 +52,16 @@ impl EventHandler for Game {
             let mut is = InputSystem {};
             is.run_now(&self.world);
         }
+
+        // Run the game state system:
+        {
+            let mut gss = GameplayStateSystem {};
+            gss.run_now(&self.world);
+        }
         return Ok(())
     }
 
     fn draw(&mut self, context: &mut Context) -> GameResult {
-        // TODO: Draw code goes here
         let mut rs = RenderingSystem {context};
         rs.run_now(&self.world);
 

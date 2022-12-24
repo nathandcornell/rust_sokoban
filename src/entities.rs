@@ -24,7 +24,7 @@ pub fn create_box_spot(world: &mut World, position: Position) {
         .with(Renderable {
             path: "/images/box_spot.png".to_string(),
         })
-        .with(Player {})
+        .with(BoxSpot {})
         .build();
 }
 
