@@ -9,7 +9,7 @@ use specs::{ReadStorage, System};
 use specs::join::Join;
 
 pub struct RenderingSystem<'a> {
-    context: &'a mut Context,
+    pub context: &'a mut Context,
 }
 
 use crate::components::*;

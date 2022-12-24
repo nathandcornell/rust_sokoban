@@ -1,7 +1,7 @@
 ////
 // Resources:
 ////
-use ggez::event::KeyInput;
+use ggez::input::keyboard::KeyInput;
 use specs::World;
 
 #[derive(Default)]
