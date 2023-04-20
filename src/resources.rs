@@ -3,8 +3,9 @@
 ////
 use ggez::input::keyboard::KeyInput;
 use specs::World;
+use std::fmt;
 
-#[derive(Eq, Debug, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub enum GameplayState {
     Playing,
     Won
@@ -13,6 +14,16 @@ pub enum GameplayState {
 impl Default for GameplayState {
     fn default() -> Self {
         Self::Playing
+    }
+}
+
+impl fmt::Display for GameplayState {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.write_str(match self {
+            GameplayState::Playing => "Playing",
+            GameplayState::Won => "Won!"
+        })?;
+        Ok(())
     }
 }
 
